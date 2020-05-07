@@ -53,7 +53,9 @@ func (handler *mdHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(handler.dir, filepath.FromSlash(urlPath)+mdSuffix)
+	//We need to handle fileserver interactions here to assets folder
+
+	filePath := filepath.Join(handler.dir, filepath.FromSlash(urlPath))
 
 	reader, modTime, err := newLazyReadSeeker(filePath)
 	if err != nil {

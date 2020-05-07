@@ -98,7 +98,7 @@ func compileHTMLPage(title string, content []byte) ([]byte, error) {
 	}{
 		Title: title,
 		Body:  template.HTML(body),
-		Style: template.CSS(styleDark),
+		Style: template.CSS("dark"),
 	}
 
 	buf := bytes.NewBuffer(content[:0]) // reuse content to reduce allocations
