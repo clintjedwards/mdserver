@@ -188,7 +188,7 @@ body {
   font-weight: 400;
   font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
-  color: #e9e6dc;
+  color: #dbdbdb;
   background-color: #424242;
 }
 
@@ -346,7 +346,7 @@ textarea,
 select {
   height: 38px;
   padding: 6px 10px; /* The 6px vertically centers text on FF, ignored by Webkit */
-  background-color: #fff;
+  background-color: #383838;
   border: 1px solid #d1d1d1;
   border-radius: 4px;
   box-shadow: none;
@@ -431,7 +431,7 @@ li {
 code {
   padding: 0.2rem 0.5rem;
   margin: 0 0.2rem;
-  font-size: 90%;
+  font-size: 100%;
   white-space: nowrap;
   background: #383838;
   border-radius: 4px;

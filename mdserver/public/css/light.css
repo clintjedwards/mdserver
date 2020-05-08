@@ -188,8 +188,8 @@ body {
   font-weight: 400;
   font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
-  color: #e9e6dc;
-  background-color: #424242;
+  color: #424242;
+  background-color: #e9e6dc;
 }
 
 /* Typography
@@ -433,7 +433,7 @@ code {
   margin: 0 0.2rem;
   font-size: 90%;
   white-space: nowrap;
-  background: #383838;
+  background: #e9e6dc;
   border-radius: 4px;
 }
 pre > code {

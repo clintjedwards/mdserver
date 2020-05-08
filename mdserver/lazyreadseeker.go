@@ -30,10 +30,15 @@ import (
 
 type lazyReadSeeker struct {
 	filePath string
+	options  htmlPageOptions
 	reader   *bytes.Reader // initially nil, initialized with init()
 }
 
-func newLazyReadSeeker(filepath string) (*lazyReadSeeker, time.Time, error) {
+type htmlPageOptions struct {
+	theme string
+}
+
+func newLazyReadSeeker(filepath string, options htmlPageOptions) (*lazyReadSeeker, time.Time, error) {
 	file, err := os.Stat(filepath)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -41,6 +46,7 @@ func newLazyReadSeeker(filepath string) (*lazyReadSeeker, time.Time, error) {
 
 	return &lazyReadSeeker{
 		filePath: filepath,
+		options:  options,
 	}, file.ModTime(), nil
 }
 
@@ -53,7 +59,7 @@ func (l *lazyReadSeeker) init() error {
 		return err
 	}
 
-	html, err := compileHTMLPage(filepath.Base(l.filePath), content)
+	html, err := compileHTMLPage(filepath.Base(l.filePath), l.options.theme, content)
 	if err != nil {
 		return err
 	}
@@ -80,7 +86,7 @@ func (l *lazyReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return l.reader.Seek(offset, whence)
 }
 
-func compileHTMLPage(title string, content []byte) ([]byte, error) {
+func compileHTMLPage(title, theme string, content []byte) ([]byte, error) {
 
 	// set some common extensions and render settings
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs ^ parser.MathJax
@@ -94,11 +100,11 @@ func compileHTMLPage(title string, content []byte) ([]byte, error) {
 	page := struct {
 		Title string
 		Body  template.HTML
-		Style template.CSS
+		Style string
 	}{
 		Title: title,
 		Body:  template.HTML(body),
-		Style: template.CSS("dark"),
+		Style: theme,
 	}
 
 	buf := bytes.NewBuffer(content[:0]) // reuse content to reduce allocations

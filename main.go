@@ -1,3 +1,5 @@
+//go:generate go run mdserver/generate.go
+
 package main
 
 import "github.com/clintjedwards/mdserver/cli"
