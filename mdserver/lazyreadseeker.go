@@ -59,7 +59,7 @@ func (l *lazyReadSeeker) init() error {
 		return err
 	}
 
-	html, err := compileHTMLPage(filepath.Base(l.filePath), l.options.theme, content)
+	html, err := compileMDToHTML(filepath.Base(l.filePath), l.options.theme, content)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (l *lazyReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return l.reader.Seek(offset, whence)
 }
 
-func compileHTMLPage(title, theme string, content []byte) ([]byte, error) {
+func compileMDToHTML(title, theme string, content []byte) ([]byte, error) {
 
 	// set some common extensions and render settings
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs ^ parser.MathJax
@@ -108,7 +108,7 @@ func compileHTMLPage(title, theme string, content []byte) ([]byte, error) {
 	}
 
 	buf := bytes.NewBuffer(content[:0]) // reuse content to reduce allocations
-	err := compiledTemplate.Execute(buf, page)
+	err := compiledPageTemplate.Execute(buf, page)
 	if err != nil {
 		return nil, err
 	}

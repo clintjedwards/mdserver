@@ -62,15 +62,33 @@ func Run(options RunOptions) error {
 func (handler *mdHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN") // prevent site from being framed by other sites
 
-	// If it's not a md file see if it can be served by the fileserver
-	if !strings.HasSuffix(r.URL.Path, mdSuffix) {
-		handler.fileServer.ServeHTTP(w, r)
-		return
-	}
-
 	urlPath := path.Clean(r.URL.Path)
 	if containsDotDot(urlPath) {
 		http.Error(w, "invalid URL path", http.StatusBadRequest)
+		return
+	}
+
+	// If this is index serve special index page
+	if urlPath == "/" {
+		page := struct {
+			Title string
+			Style string
+		}{
+			Title: "Index",
+			Style: handler.theme,
+		}
+
+		err := compiledIndexTemplate.Execute(w, page)
+		if err != nil {
+			http.Error(w, "could not serve index", http.StatusBadGateway)
+			return
+		}
+		return
+	}
+
+	// If it's not a md file see if it can be served by the fileserver
+	if !strings.HasSuffix(r.URL.Path, mdSuffix) {
+		handler.fileServer.ServeHTTP(w, r)
 		return
 	}
 
@@ -87,6 +105,7 @@ func (handler *mdHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeContent(w, r, "page.html", modTime, reader)
+	return
 }
 
 func containsDotDot(v string) bool {

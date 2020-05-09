@@ -23,4 +23,4 @@ const pageTemplate = `
 </html>
 `
 
-var compiledTemplate = template.Must(template.New("page").Parse(pageTemplate))
+var compiledPageTemplate = template.Must(template.New("page").Parse(pageTemplate))
