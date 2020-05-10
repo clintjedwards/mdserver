@@ -280,7 +280,7 @@ input[type="button"] {
   display: inline-block;
   height: 38px;
   padding: 0 30px;
-  color: #555;
+  color: #dbdbdb;
   text-align: center;
   font-size: 11px;
   font-weight: 600;
@@ -305,7 +305,7 @@ button:focus,
 input[type="submit"]:focus,
 input[type="reset"]:focus,
 input[type="button"]:focus {
-  color: #333;
+  color: #dbdbdb;
   border-color: #888;
   outline: 0;
 }
@@ -314,7 +314,7 @@ button.button-primary,
 input[type="submit"].button-primary,
 input[type="reset"].button-primary,
 input[type="button"].button-primary {
-  color: #fff;
+  color: #dbdbdb;
   background-color: #33c3f0;
   border-color: #33c3f0;
 }
@@ -328,7 +328,7 @@ button.button-primary:focus,
 input[type="submit"].button-primary:focus,
 input[type="reset"].button-primary:focus,
 input[type="button"].button-primary:focus {
-  color: #fff;
+  color: #dbdbdb;
   background-color: #1eaedb;
   border-color: #1eaedb;
 }
@@ -344,6 +344,7 @@ input[type="url"],
 input[type="password"],
 textarea,
 select {
+  color: #dbdbdb;
   height: 38px;
   padding: 6px 10px; /* The 6px vertically centers text on FF, ignored by Webkit */
   background-color: #383838;
@@ -448,15 +449,20 @@ th,
 td {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #e1e1e1;
 }
-th:first-child,
-td:first-child {
-  padding-left: 0;
+
+tr > a,
+td > a {
+  text-decoration: none;
+  color: #dbdbdb;
 }
-th:last-child,
-td:last-child {
-  padding-right: 0;
+
+tr:nth-child(even) {
+  background-color: #383838;
+}
+
+table.center {
+  width: 80%;
 }
 
 /* Spacing

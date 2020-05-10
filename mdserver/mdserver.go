@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/artyom/httpgzip"
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/browser"
 )
 
@@ -70,15 +71,23 @@ func (handler *mdHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// If this is index serve special index page
 	if urlPath == "/" {
+		files, err := getDirFileInfo(handler.dir)
+		if err != nil {
+			http.Error(w, "could not serve index", http.StatusBadGateway)
+			return
+		}
+
 		page := struct {
 			Title string
 			Style string
+			Files []fileInfo
 		}{
 			Title: "Index",
 			Style: handler.theme,
+			Files: files,
 		}
 
-		err := compiledIndexTemplate.Execute(w, page)
+		err = compiledIndexTemplate.Execute(w, page)
 		if err != nil {
 			http.Error(w, "could not serve index", http.StatusBadGateway)
 			return
@@ -118,4 +127,38 @@ func containsDotDot(v string) bool {
 		}
 	}
 	return false
+}
+
+// getDirFileInfo
+func getDirFileInfo(rootDir string) ([]fileInfo, error) {
+
+	var files []fileInfo
+
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		// handle error if failure to access path
+		if err != nil {
+			return err
+		}
+		if strings.HasSuffix(path, mdSuffix) {
+			files = append(files, fileInfo{
+				Name:     info.Name(),
+				Modified: humanize.Time(info.ModTime()),
+				Size:     humanize.Bytes(uint64(info.Size())),
+				Path:     strings.TrimPrefix(path, rootDir),
+			})
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+type fileInfo struct {
+	Name     string
+	Modified string
+	Size     string
+	Path     string
 }

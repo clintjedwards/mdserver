@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/artyom/httpgzip v1.1.1
+	github.com/dustin/go-humanize v1.0.0
 	github.com/gomarkdown/markdown v0.0.0-20200316172748-fd1f3374857d
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4

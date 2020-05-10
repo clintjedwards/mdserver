@@ -13,8 +13,24 @@ const indexTemplate = `
 </head>
 
 <body>
-	<h1>Test Index Header</h1>
-	<input type="text" placeholder="Search.." name="search">
+	<h1>Markdown Server</h1>
+	<input type="text" placeholder="Search" name="search" autocomplete="off" />
+	<br />
+
+	<table class="center">
+	<tr>
+	  <th>Name</th>
+	  <th>Last Modified</th>
+	  <th>Size</th>
+	</tr>
+	{{range .Files}}
+	<tr>
+		<td><a href="{{.Path}}">{{.Name}}</a></td>
+		<td><a href="{{.Path}}">{{.Modified}}</a></td>
+		<td><a href="{{.Path}}">{{.Size}}</a></td>
+	</tr>
+	{{end}}
+  </table>
 </body>
 </html>
 `
