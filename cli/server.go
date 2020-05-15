@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/clintjedwards/mdserver/mdserver"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -19,8 +20,14 @@ func runServerCmd(cmd *cobra.Command, args []string) {
 	dir, _ := cmd.Flags().GetString("directory")
 	theme, _ := cmd.Flags().GetString("theme")
 
-	options := mdserver.RunOptions{Dir: dir, Addr: url, Open: "", Theme: theme}
-	mdserver.Run(options)
+	server := mdserver.NewMDServer(mdserver.ServerOptions{
+		Dir:   dir,
+		Addr:  url,
+		Open:  "",
+		Theme: theme,
+	})
+
+	log.Fatal().Err(server.Run())
 }
 
 func init() {

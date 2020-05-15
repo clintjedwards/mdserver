@@ -1,6 +1,7 @@
 package mdserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,51 +11,90 @@ import (
 	"time"
 
 	"github.com/artyom/httpgzip"
+	"github.com/clintjedwards/mdserver/search"
 	"github.com/dustin/go-humanize"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/pkg/browser"
+	"github.com/rs/zerolog/log"
 )
 
 const mdSuffix = ".md"
 
-// mdHandler is a http handler implementation specifically for markdown serving
+// MDServer is the main entry point of the markdown server
+type MDServer struct {
+	search  *search.Search
+	options ServerOptions
+}
+
+// NewMDServer creates a new instance of a markdown server which can then be started
+func NewMDServer(options ServerOptions) *MDServer {
+	search, err := search.InitSearch(options.Dir)
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+
+	go func() {
+		for {
+			err := search.BuildIndex()
+			if err != nil {
+				log.Error().Err(err)
+			}
+			//time.Sleep(60 * time.Minute)
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	return &MDServer{
+		search:  search,
+		options: options,
+	}
+}
+
+// mdHandler is a http handler implementation specifically for serving markdown content
 type mdHandler struct {
 	dir        string // the directory path where markdown files are stored
 	fileServer http.Handler
 	theme      string
 }
 
-// RunOptions define a set of options that are used to configure the mdserver
-type RunOptions struct {
-	Dir   string
-	Addr  string
-	Open  string
-	Theme string
+// ServerOptions define a set of options that are used to configure the mdserver
+type ServerOptions struct {
+	Dir   string //dir: the directory where the markdown files live
+	Addr  string //addr: <host>:<port> that webserver will listen on
+	Open  string //open: name of the file to open to, if not provided a default home page will be provided
+	Theme string //theme: css theme for frontend
 }
 
-// Run starts the markdown webserver
-// 	dir: the directory where the markdown files live
-// 	addr: <host>:<port> that webserver will listen on
-// 	open: name of the file to open to, if not provided a default home page will be provided
-func Run(options RunOptions) error {
+// Run starts the mdserver
+func (mdserver *MDServer) Run() error {
 	mdHandler := &mdHandler{
-		dir: options.Dir,
+		dir: mdserver.options.Dir,
 		// We bake frontend files directly into the binary
 		// assets is an implementation of an http.filesystem created by
 		// github.com/shurcooL/vfsgen that points to the "public" folder
 		fileServer: http.FileServer(assets),
-		theme:      options.Theme,
+		theme:      mdserver.options.Theme,
 	}
 
+	router := mux.NewRouter()
+
+	// route matches are evaluated in the order they are added (first match)
+	router.Handle("/api/search", handlers.MethodHandler{
+		"GET": http.HandlerFunc(mdserver.searchHandler),
+	})
+	router.PathPrefix("/").Handler(httpgzip.New(mdHandler))
+
 	srv := http.Server{
-		Addr:        options.Addr,
-		Handler:     httpgzip.New(mdHandler),
+		Addr:        mdserver.options.Addr,
+		Handler:     router,
 		ReadTimeout: time.Second,
 	}
 
-	if options.Open != "" {
+	if mdserver.options.Open != "" {
 		go func() {
 			time.Sleep(100 * time.Millisecond)
-			browser.OpenURL(fmt.Sprintf("http://%s/%s", options.Addr, options.Open))
+			browser.OpenURL(fmt.Sprintf("http://%s/%s", mdserver.options.Addr, mdserver.options.Open))
 		}()
 	}
 	return srv.ListenAndServe()
@@ -129,6 +169,13 @@ func containsDotDot(v string) bool {
 	return false
 }
 
+func formatName(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, mdSuffix)
+
+	return path
+}
+
 // getDirFileInfo
 func getDirFileInfo(rootDir string) ([]fileInfo, error) {
 
@@ -141,7 +188,7 @@ func getDirFileInfo(rootDir string) ([]fileInfo, error) {
 		}
 		if strings.HasSuffix(path, mdSuffix) {
 			files = append(files, fileInfo{
-				Name:     info.Name(),
+				Name:     formatName(strings.TrimPrefix(path, rootDir)),
 				Modified: humanize.Time(info.ModTime()),
 				Size:     humanize.Bytes(uint64(info.Size())),
 				Path:     strings.TrimPrefix(path, rootDir),
@@ -161,4 +208,38 @@ type fileInfo struct {
 	Modified string
 	Size     string
 	Path     string
+}
+
+func (mdserver *MDServer) searchHandler(w http.ResponseWriter, req *http.Request) {
+	term := req.FormValue("term")
+	hits, err := mdserver.search.Query(term)
+	if err != nil {
+		sendJSONErrResponse(w, http.StatusBadGateway, err)
+		return
+	}
+
+	sendJSONResponse(w, http.StatusOK, hits)
+	return
+}
+
+// sendJSONResponse converts raw objects and parameters to a json response and passes it to a provided writer
+func sendJSONResponse(w http.ResponseWriter, httpStatusCode int, payload interface{}) {
+	w.WriteHeader(httpStatusCode)
+
+	enc := json.NewEncoder(w)
+	err := enc.Encode(payload)
+	if err != nil {
+		log.Error().Err(err).Msg("could not send JSON response")
+	}
+}
+
+// sendJSONErrResponse converts raw objects and parameters to a json response and passes it to a provided writer
+func sendJSONErrResponse(w http.ResponseWriter, httpStatusCode int, errStr error) {
+	w.WriteHeader(httpStatusCode)
+
+	enc := json.NewEncoder(w)
+	err := enc.Encode(map[string]string{"err": errStr.Error()})
+	if err != nil {
+		log.Error().Err(err).Msg("could not send JSON response")
+	}
 }

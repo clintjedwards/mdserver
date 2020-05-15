@@ -25,7 +25,7 @@ const indexTemplate = `
 	</tr>
 	{{range .Files}}
 	<tr>
-		<td><a href="{{.Path}}">{{.Name}}</a></td>
+		<td style="text-transform:capitalize;"><a href="{{.Path}}">{{.Name}}</a></td>
 		<td><a href="{{.Path}}">{{.Modified}}</a></td>
 		<td><a href="{{.Path}}">{{.Size}}</a></td>
 	</tr>
