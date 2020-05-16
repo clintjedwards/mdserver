@@ -40,8 +40,7 @@ func NewMDServer(options ServerOptions) *MDServer {
 			if err != nil {
 				log.Error().Err(err)
 			}
-			//time.Sleep(60 * time.Minute)
-			time.Sleep(10 * time.Second)
+			time.Sleep(60 * time.Minute)
 		}
 	}()
 

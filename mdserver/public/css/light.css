@@ -24,6 +24,10 @@
 - Media Queries
 */
 
+.hidden {
+  display: none;
+}
+
 /* Grid
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .container {
