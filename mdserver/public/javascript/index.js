@@ -33,7 +33,6 @@ function filterTable(matches) {
       show(currentValue);
       return;
     }
-    console.log("id: " + currentValue.id);
     hide(currentValue);
     return;
   });
