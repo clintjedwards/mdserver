@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=<user>
 Group=<group>
-ExecStart=/usr/local/bin/mdserver server localhost:8080 -d /home/romeo/Documents/reference
+ExecStart=/usr/local/bin/mdserver server <host> -d <markdown files path>
 
 [Install]
 WantedBy=default.target
