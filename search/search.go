@@ -60,18 +60,30 @@ func InitSearch(dir string) (*Search, error) {
 // getOrCreateIndex returns an index if one already exists or creates a new empty one
 func getOrCreateIndex(path string) (index bleve.Index, err error) {
 
-	index, err = bleve.Open(path)
-	if err != nil {
-		log.Info().Msg("could not find current index, creating new one")
+	// We use a channel here to wrap a timer around the bleve.open command
+	// since it will wait indefinitely for the lock to be released on it's index files
+	done := make(chan string, 1)
 
-		mapping := bleve.NewIndexMapping()
-		index, err = bleve.New(path, mapping)
+	go func() {
+		index, err = bleve.Open(path)
 		if err != nil {
-			return nil, err
-		}
-	}
+			log.Info().Msg("could not find current index, creating new one")
 
-	return index, nil
+			mapping := bleve.NewIndexMapping()
+			index, err = bleve.New(path, mapping)
+			if err != nil {
+				index = nil
+			}
+		}
+		done <- "done"
+	}()
+
+	select {
+	case <-done:
+		return index, nil
+	case <-time.After(5 * time.Second):
+		return nil, fmt.Errorf("timed out attempting to open search index, this usually means another applicaiton already has the search directory open")
+	}
 }
 
 // BuildIndex will walk the search directory and add markdown files into index
@@ -123,13 +135,15 @@ func (si *Search) BuildIndex() error {
 
 	err = si.Batch(batch)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("could not index documents; batch error")
 	}
 
 	indexDuration := time.Since(startTime)
 	indexDurationSeconds := float64(indexDuration) / float64(time.Second)
 	timePerDoc := float64(indexDuration) / float64(count)
-	log.Info().Msgf("Indexed %d documents, in %.2fs (average %.2fms/doc)", count, indexDurationSeconds, timePerDoc/float64(time.Millisecond))
+	if count > 0 {
+		log.Info().Msgf("Indexed %d documents, in %.2fs (average %.2fms/doc)", count, indexDurationSeconds, timePerDoc/float64(time.Millisecond))
+	}
 	return nil
 }
 

@@ -29,4 +29,4 @@ run: export DEBUG=true
 run:
 	go mod tidy
 	go generate
-	go build -ldflags $(GO_LDFLAGS) -o /tmp/${APP_NAME} && /tmp/${APP_NAME} server localhost:8080 -d /home/romeo/Documents/reference
+	go build -ldflags $(GO_LDFLAGS) -o /tmp/${APP_NAME} && /tmp/${APP_NAME} server localhost:8082 -d /home/romeo/Documents/reference

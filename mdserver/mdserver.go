@@ -31,14 +31,14 @@ type MDServer struct {
 func NewMDServer(options ServerOptions) *MDServer {
 	search, err := search.InitSearch(options.Dir)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("error initializing search")
 	}
 
 	go func() {
 		for {
 			err := search.BuildIndex()
 			if err != nil {
-				log.Error().Err(err)
+				log.Error().Err(err).Msg("could not build index")
 			}
 			time.Sleep(60 * time.Minute)
 		}

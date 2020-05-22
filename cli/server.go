@@ -27,7 +27,7 @@ func runServerCmd(cmd *cobra.Command, args []string) {
 		Theme: theme,
 	})
 
-	log.Fatal().Err(server.Run())
+	log.Fatal().Err(server.Run()).Msg("server exited")
 }
 
 func init() {
