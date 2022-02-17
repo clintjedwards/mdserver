@@ -17,7 +17,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/browser"
 	"github.com/rs/zerolog/log"
+	"embed"
 )
+
+//go:embed public
+var assets embed.FS
 
 const mdSuffix = ".md"
 
@@ -72,7 +76,7 @@ func (mdserver *MDServer) Run() error {
 		// We bake frontend files directly into the binary
 		// assets is an implementation of an http.filesystem created by
 		// github.com/shurcooL/vfsgen that points to the "public" folder
-		fileServer: http.FileServer(assets),
+		fileServer: http.FileServer(http.FS(assets)),
 		theme:      mdserver.options.Theme,
 	}
 
